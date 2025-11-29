@@ -52,11 +52,6 @@ public class User {
     @Builder.Default
     boolean enabled = false;
 
-    @Column(name = "verification_code")
-    String verificationCode;
-
-    @Column(name = "verification_expiration")
-    LocalDateTime verificationExpiresAt;
 
     @CreationTimestamp
     @Column(updatable = false)

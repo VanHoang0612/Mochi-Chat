@@ -12,6 +12,7 @@ import com.mochi.backend.security.email.EmailService;
 import com.mochi.backend.security.email.dto.ReSendVerificationCodeRequest;
 import com.mochi.backend.security.email.dto.VerifyEmailRequest;
 import com.mochi.backend.security.jwt.JwtService;
+import com.mochi.backend.security.otp.OtpService;
 import com.mochi.backend.security.userDetails.CustomUserDetails;
 import com.mochi.backend.security.userDetails.CustomUserDetailsService;
 import com.mochi.backend.shared.enums.ErrorCode;
@@ -20,7 +21,6 @@ import com.mochi.backend.shared.mapper.UserMapper;
 import com.mochi.backend.shared.utils.CookieUtils;
 import com.mochi.backend.user.User;
 import com.mochi.backend.user.UserService;
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,11 +47,15 @@ public class AuthService {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
     private final RevokedTokenService revokedTokenService;
+    private final OtpService otpService;
 
     public void register(RegisterRequest request) {
 
-        if (userService.existsByEmail(request.getEmail()) || userService.existsByUsername(request.getUsername())) {
-            throw new AppException(ErrorCode.ACCOUNT_REGISTERED);
+        if (userService.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_REGISTERED);
+        }
+        if (userService.existsByUsername(request.getUsername())) {
+            throw new AppException(ErrorCode.USERNAME_REGISTERED);
         }
         User user = User.builder()
                 .username(request.getUsername()
@@ -68,14 +72,11 @@ public class AuthService {
                         Set.of(roleService.findByName(RoleType.ROLE_USER.name())
                                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND)))
                 )
-                .verificationCode(generateVerificationCode())
-                .verificationExpiresAt(LocalDateTime.now()
-                        .plusMinutes(10))
                 .build();
 
         try {
             userService.saveUser(user);
-            sendVerificationEmail(user);
+            emailService.sendVerificationEmail(user.getEmail(), otpService.generateCode(user.getEmail()));
         } catch (Exception e) {
             throw new AppException(ErrorCode.INTERNAL_SERVER, List.of(e.getMessage()));
         }
@@ -85,16 +86,11 @@ public class AuthService {
         Optional<User> optionalUser = userService.findByEmail(request.getEmail());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            if (user.getVerificationExpiresAt()
-                    .isBefore(LocalDateTime.now())) {
-                throw new AppException(ErrorCode.VERIFICATION_CODE_EXPIRED);
-            }
-            if (user.getVerificationCode()
-                    .equals(request.getVerificationCode())) {
+
+            if (otpService.verifyCode(user.getEmail(), request.getVerificationCode())) {
                 user.setEnabled(true);
-                user.setVerificationCode(null);
-                user.setVerificationExpiresAt(null);
                 userService.saveUser(user);
+                otpService.clearCode(user.getEmail());
             } else {
                 throw new AppException(ErrorCode.VERIFICATION_CODE_INVALID);
             }
@@ -110,43 +106,12 @@ public class AuthService {
             if (user.isEnabled()) {
                 throw new AppException(ErrorCode.USER_IS_ENABLED);
             }
-            user.setVerificationCode(generateVerificationCode());
-            user.setVerificationExpiresAt(LocalDateTime.now()
-                    .plusMinutes(15));
-            sendVerificationEmail(user);
-            userService.saveUser(user);
+            emailService.sendVerificationEmail(user.getEmail(), otpService.generateCode(user.getEmail()));
         } else {
             throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
         }
     }
 
-    private void sendVerificationEmail(User user) {
-        String subject = "Verify your email";
-        String verificationCode = user.getVerificationCode();
-        String htmlMessage = "<html>"
-                + "<body style=\"font-family: Arial, sans-serif;\">"
-                + "<div style=\"background-color: #f5f5f5; padding: 20px;\">"
-                + "<h2 style=\"color: #333;\">Welcome to our app!</h2>"
-                + "<p style=\"font-size: 16px;\">Please enter the verification code below to continue:</p>"
-                + "<div style=\"background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1);\">"
-                + "<h3 style=\"color: #333;\">Verification Code:</h3>"
-                + "<p style=\"font-size: 18px; font-weight: bold; color: #007bff;\">" + verificationCode + "</p>"
-                + "</div>"
-                + "</div>"
-                + "</body>"
-                + "</html>";
-        try {
-            emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
-        } catch (MessagingException e) {
-            throw new AppException(ErrorCode.SEND_EMAIL_FAIL, List.of(e.getMessage()));
-        }
-    }
-
-    private String generateVerificationCode() {
-        Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
-        return String.valueOf(code);
-    }
 
     public AuthResponse login(LoginRequest request) {
         try {

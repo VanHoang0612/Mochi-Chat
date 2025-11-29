@@ -14,7 +14,8 @@ public enum ErrorCode {
     ROLE_NOT_FOUND("Role does not exists!", HttpStatus.NOT_FOUND),
     LOGIN_FAIL("The account or password is incorrect!", HttpStatus.UNAUTHORIZED),
     USER_DISABLE("The account not verified!", HttpStatus.FORBIDDEN),
-    ACCOUNT_REGISTERED("The account has been registered!", HttpStatus.BAD_REQUEST),
+    EMAIL_REGISTERED("The email has been registered!", HttpStatus.BAD_REQUEST),
+    USERNAME_REGISTERED("The username has been registered!", HttpStatus.BAD_REQUEST),
     SEND_EMAIL_FAIL("Failed to send verification email!", HttpStatus.BAD_REQUEST),
     USER_IS_ENABLED("The account has been verified!", HttpStatus.BAD_REQUEST),
     EMAIL_NOT_REGISTERED("The email not registered!", HttpStatus.BAD_REQUEST),
@@ -27,7 +28,7 @@ public enum ErrorCode {
     TOKEN_EXISTS("Token exists!", HttpStatus.BAD_REQUEST),
     ;
     private final String message;
-    
+
     @JsonIgnore
     private final HttpStatus httpStatus;
 }

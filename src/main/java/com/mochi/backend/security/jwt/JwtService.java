@@ -1,9 +1,9 @@
 package com.mochi.backend.security.jwt;
 
-import com.mochi.backend.RevokedToken.RevokedToken;
-import com.mochi.backend.RevokedToken.RevokedTokenService;
+import com.mochi.backend.enums.ErrorCode;
 import com.mochi.backend.exception.AppException;
-import com.mochi.backend.shared.enums.ErrorCode;
+import com.mochi.backend.model.RevokedToken;
+import com.mochi.backend.service.RevokedTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

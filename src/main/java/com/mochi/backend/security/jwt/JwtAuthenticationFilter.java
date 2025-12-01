@@ -1,8 +1,8 @@
 package com.mochi.backend.security.jwt;
 
-import com.mochi.backend.role.Role;
+import com.mochi.backend.model.Role;
+import com.mochi.backend.model.User;
 import com.mochi.backend.security.userDetails.CustomUserDetails;
-import com.mochi.backend.user.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,7 +1,7 @@
 package com.mochi.backend.security.otp;
 
+import com.mochi.backend.enums.ErrorCode;
 import com.mochi.backend.exception.AppException;
-import com.mochi.backend.shared.enums.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;

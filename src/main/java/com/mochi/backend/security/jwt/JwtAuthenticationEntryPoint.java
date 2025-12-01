@@ -1,8 +1,8 @@
 package com.mochi.backend.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mochi.backend.shared.dto.api.ApiResponse;
-import com.mochi.backend.shared.enums.ErrorCode;
+import com.mochi.backend.dto.api.ApiResponse;
+import com.mochi.backend.enums.ErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

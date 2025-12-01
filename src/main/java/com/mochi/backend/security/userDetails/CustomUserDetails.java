@@ -1,7 +1,7 @@
 package com.mochi.backend.security.userDetails;
 
-import com.mochi.backend.role.Role;
-import com.mochi.backend.user.User;
+import com.mochi.backend.model.Role;
+import com.mochi.backend.model.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;

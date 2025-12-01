@@ -1,6 +1,6 @@
 package com.mochi.backend.security.userDetails;
 
-import com.mochi.backend.user.UserRepository;
+import com.mochi.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

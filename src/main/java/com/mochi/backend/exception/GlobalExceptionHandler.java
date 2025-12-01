@@ -1,7 +1,7 @@
 package com.mochi.backend.exception;
 
-import com.mochi.backend.shared.dto.api.ApiResponse;
-import com.mochi.backend.shared.enums.ErrorCode;
+import com.mochi.backend.dto.api.ApiResponse;
+import com.mochi.backend.enums.ErrorCode;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

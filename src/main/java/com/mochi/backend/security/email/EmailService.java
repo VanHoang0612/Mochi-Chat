@@ -1,7 +1,7 @@
 package com.mochi.backend.security.email;
 
+import com.mochi.backend.enums.ErrorCode;
 import com.mochi.backend.exception.AppException;
-import com.mochi.backend.shared.enums.ErrorCode;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

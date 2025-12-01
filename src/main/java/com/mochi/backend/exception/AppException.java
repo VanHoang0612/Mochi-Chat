@@ -1,6 +1,6 @@
 package com.mochi.backend.exception;
 
-import com.mochi.backend.shared.enums.ErrorCode;
+import com.mochi.backend.enums.ErrorCode;
 import lombok.Getter;
 import lombok.Setter;
 

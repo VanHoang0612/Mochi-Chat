@@ -1,10 +1,10 @@
 package com.mochi.backend.config;
 
-import com.mochi.backend.role.Role;
-import com.mochi.backend.role.RoleRepository;
-import com.mochi.backend.shared.enums.RoleType;
-import com.mochi.backend.user.User;
-import com.mochi.backend.user.UserRepository;
+import com.mochi.backend.enums.RoleType;
+import com.mochi.backend.model.Role;
+import com.mochi.backend.model.User;
+import com.mochi.backend.repository.RoleRepository;
+import com.mochi.backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

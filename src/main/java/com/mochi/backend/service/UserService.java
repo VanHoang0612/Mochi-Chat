@@ -1,7 +1,10 @@
 package com.mochi.backend.service;
 
 import com.mochi.backend.dto.user.AddUserRequest;
+import com.mochi.backend.dto.user.ChangePasswordRequest;
 import com.mochi.backend.dto.user.UserDto;
+import com.mochi.backend.enums.ErrorCode;
+import com.mochi.backend.exception.AppException;
 import com.mochi.backend.mapper.UserMapper;
 import com.mochi.backend.model.User;
 import com.mochi.backend.repository.UserRepository;
@@ -83,8 +86,27 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
-    public UserDto getCurrentUser(Authentication authentication) {
+    public UserDto getMe(Authentication authentication) {
+        String currentUsername = getCurrentUser(authentication).getUsername();
+        User user = findByUsername(currentUsername)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+        return userMapper.toDto(user);
+    }
+
+    public User getCurrentUser(Authentication authentication) {
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userMapper.toDto(customUserDetails.getUser());
+        return customUserDetails.getUser();
+    }
+
+    public void changePassword(Authentication authentication, ChangePasswordRequest request) {
+        String currentUsername = getCurrentUser(authentication).getUsername();
+        User user = findByUsername(currentUsername)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_EXISTED));
+        if (passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+        } else {
+            throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
+        }
     }
 }

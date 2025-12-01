@@ -26,6 +26,9 @@ public enum ErrorCode {
     REFRESH_TOKEN_INVALID("Refresh token invalid", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_EXISTED("Account not existed!", HttpStatus.BAD_REQUEST),
     TOKEN_EXISTS("Token exists!", HttpStatus.BAD_REQUEST),
+    INVALID_RESET_TOKEN("Reset token invalid!", HttpStatus.BAD_REQUEST),
+    PASSWORD_CONFIRM_MISMATCH("Password confirm mismatch!", HttpStatus.BAD_REQUEST),
+    OLD_PASSWORD_INCORRECT("Old password incorrect!", HttpStatus.BAD_REQUEST),
     ;
     private final String message;
 

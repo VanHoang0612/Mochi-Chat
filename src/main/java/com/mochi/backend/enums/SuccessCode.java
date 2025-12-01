@@ -14,6 +14,7 @@ public enum SuccessCode {
     RESEND_VERIFICATION_CODE("Resend verification code success", HttpStatus.OK),
     LOGIN("Login success", HttpStatus.OK),
     REFRESH_TOKEN("Refresh token success", HttpStatus.OK),
+    VERIFY_OTP("Verify otp success", HttpStatus.OK),
     ;
 
     private final String message;

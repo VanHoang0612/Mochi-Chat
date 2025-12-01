@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final User user;
 
+    private final User user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

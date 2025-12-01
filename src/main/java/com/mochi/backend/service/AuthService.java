@@ -1,9 +1,6 @@
 package com.mochi.backend.service;
 
-import com.mochi.backend.dto.auth.AuthResponse;
-import com.mochi.backend.dto.auth.LoginRequest;
-import com.mochi.backend.dto.auth.RefreshTokenResponse;
-import com.mochi.backend.dto.auth.RegisterRequest;
+import com.mochi.backend.dto.auth.*;
 import com.mochi.backend.enums.ErrorCode;
 import com.mochi.backend.enums.RoleType;
 import com.mochi.backend.exception.AppException;
@@ -11,14 +8,12 @@ import com.mochi.backend.mapper.UserMapper;
 import com.mochi.backend.model.RevokedToken;
 import com.mochi.backend.model.User;
 import com.mochi.backend.security.email.EmailService;
-import com.mochi.backend.security.email.dto.ReSendVerificationCodeRequest;
-import com.mochi.backend.security.email.dto.VerifyEmailRequest;
 import com.mochi.backend.security.jwt.JwtService;
-import com.mochi.backend.security.otp.OtpService;
 import com.mochi.backend.security.userDetails.CustomUserDetails;
 import com.mochi.backend.security.userDetails.CustomUserDetailsService;
 import com.mochi.backend.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +22,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -45,6 +41,8 @@ public class AuthService {
     private final CustomUserDetailsService userDetailsService;
     private final RevokedTokenService revokedTokenService;
     private final OtpService otpService;
+    private final RedisService redisService;
+    private final PasswordEncoder passwordEncoder;
 
     public void register(RegisterRequest request) {
 
@@ -59,8 +57,8 @@ public class AuthService {
                         .trim())
                 .email(request.getEmail()
                         .trim())
-                .password(request.getPassword()
-                        .trim())
+                .password(passwordEncoder.encode(request.getPassword()
+                        .trim()))
                 .firstname(request.getFirstname()
                         .trim())
                 .lastname(request.getLastname()
@@ -84,19 +82,33 @@ public class AuthService {
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
-            if (otpService.verifyCode(user.getEmail(), request.getVerificationCode())) {
+            if (otpService.verifyOtp(user.getEmail(), request.getVerificationCode())) {
                 user.setEnabled(true);
                 userService.saveUser(user);
-                otpService.clearCode(user.getEmail());
-            } else {
-                throw new AppException(ErrorCode.VERIFICATION_CODE_INVALID);
             }
         } else {
             throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
         }
     }
 
-    public void reSendVerificationCode(ReSendVerificationCodeRequest request) {
+    public VerifyOtpResponse verifyOtp(@Valid VerifyEmailRequest request) {
+        Optional<User> optionalUser = userService.findByEmail(request.getEmail());
+        if (optionalUser.isPresent()) {
+            otpService.verifyOtp(optionalUser.get()
+                    .getEmail(), request.getVerificationCode());
+            String resetToken = UUID.randomUUID()
+                    .toString();
+            redisService.saveValue("resetToken:" + resetToken, optionalUser.get()
+                    .getEmail());
+            return VerifyOtpResponse.builder()
+                    .resetToken(resetToken)
+                    .build();
+        } else {
+            throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
+        }
+    }
+
+    public void reSendVerificationCode(SendVerificationCodeRequest request) {
         Optional<User> optionalUser = userService.findByEmail(request.getEmail());
         if (optionalUser.isPresent()) {
             User user = optionalUser.get();
@@ -176,5 +188,33 @@ public class AuthService {
                         .build()
         );
         SecurityContextHolder.clearContext();
+    }
+
+    public void forgotPassword(SendVerificationCodeRequest request) {
+        Optional<User> optionalUser = userService.findByEmail(request.getEmail());
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            emailService.sendVerificationEmail(user.getEmail(), otpService.generateCode(user.getEmail()));
+        } else {
+            throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
+        }
+    }
+
+
+    public void resetPassword(@Valid ResetPasswordRequest request) {
+        String storedEmail = redisService.getValue("resetToken:" + request.getResetToken());
+        if (storedEmail == null) {
+            throw new AppException(ErrorCode.INVALID_RESET_TOKEN);
+        }
+        Optional<User> optionalUser = userService.findByEmail(storedEmail);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userService.saveUser(user);
+            redisService.deleteValue("resetToken:" + request.getResetToken());
+        } else {
+            throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
+        }
+
     }
 }

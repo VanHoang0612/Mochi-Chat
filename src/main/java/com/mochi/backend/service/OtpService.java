@@ -1,4 +1,4 @@
-package com.mochi.backend.security.otp;
+package com.mochi.backend.service;
 
 import com.mochi.backend.enums.ErrorCode;
 import com.mochi.backend.exception.AppException;
@@ -16,24 +16,23 @@ import java.util.Random;
 public class OtpService {
     private final StringRedisTemplate redisTemplate;
     private final Duration ttl = Duration.ofMinutes(5);
+    private final RedisService redisService;
 
     public String generateCode(String email) {
         String code = String.valueOf(new Random().nextInt(999999));
-        redisTemplate.opsForValue()
-                .set(email, code, ttl);
+        redisService.saveValue(email, code);
         return code;
     }
 
-    public boolean verifyCode(String email, String code) {
-        String storedCode = redisTemplate.opsForValue()
-                .get(email);
+    public boolean verifyOtp(String email, String code) {
+        String storedCode = redisService.getValue(email);
         if (storedCode == null) {
             throw new AppException(ErrorCode.VERIFICATION_CODE_EXPIRED);
         }
-        return code.equals(storedCode);
-    }
-
-    public void clearCode(String email) {
-        redisTemplate.delete(email);
+        if (code.equals(storedCode)) {
+            redisService.deleteValue(email);
+            return true;
+        }
+        throw new AppException(ErrorCode.VERIFICATION_CODE_INVALID);
     }
 }

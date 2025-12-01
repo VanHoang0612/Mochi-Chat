@@ -54,6 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     .name(roleName)
                                     .build())
                             .collect(Collectors.toSet()))
+                    .enabled(true)
                     .build();
             CustomUserDetails userDetails = new CustomUserDetails(tempUser);
             if (jwtService.isAccessTokenValid(jwt, userDetails)) {

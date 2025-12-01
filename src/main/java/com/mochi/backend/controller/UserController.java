@@ -2,9 +2,11 @@ package com.mochi.backend.controller;
 
 import com.mochi.backend.dto.api.ApiResponse;
 import com.mochi.backend.dto.user.AddUserRequest;
+import com.mochi.backend.dto.user.ChangePasswordRequest;
 import com.mochi.backend.dto.user.UserDto;
 import com.mochi.backend.enums.SuccessCode;
 import com.mochi.backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,7 +44,18 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(Authentication authentication) {
         return ResponseEntity.status(SuccessCode.SUCCESS.getStatus())
                 .body(
-                        ApiResponse.success(userService.getCurrentUser(authentication), SuccessCode.SUCCESS)
+                        ApiResponse.success(userService.getMe(authentication), SuccessCode.SUCCESS)
+                );
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            Authentication authentication,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(authentication, request);
+        return ResponseEntity.status(SuccessCode.SUCCESS.getStatus())
+                .body(
+                        ApiResponse.success(null, SuccessCode.SUCCESS)
                 );
     }
 

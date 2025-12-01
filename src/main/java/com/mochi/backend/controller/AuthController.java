@@ -1,13 +1,8 @@
 package com.mochi.backend.controller;
 
 import com.mochi.backend.dto.api.ApiResponse;
-import com.mochi.backend.dto.auth.AuthResponse;
-import com.mochi.backend.dto.auth.LoginRequest;
-import com.mochi.backend.dto.auth.RefreshTokenResponse;
-import com.mochi.backend.dto.auth.RegisterRequest;
+import com.mochi.backend.dto.auth.*;
 import com.mochi.backend.enums.SuccessCode;
-import com.mochi.backend.security.email.dto.ReSendVerificationCodeRequest;
-import com.mochi.backend.security.email.dto.VerifyEmailRequest;
 import com.mochi.backend.service.AuthService;
 import com.mochi.backend.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +33,7 @@ public class AuthController {
                 .body(ApiResponse.success(null, SuccessCode.REGISTER));
     }
 
+    // xac thuc email, kich hoat tai khoan
     @PostMapping("/verify-email")
     public ResponseEntity<ApiResponse<?>> verifyEmail(@Valid @RequestBody VerifyEmailRequest verifyEmailRequest) {
         authService.verifyEmail(verifyEmailRequest);
@@ -46,7 +42,7 @@ public class AuthController {
     }
 
     @PostMapping("/resend-code")
-    public ResponseEntity<ApiResponse<?>> resendVerificationCode(@Valid @RequestBody ReSendVerificationCodeRequest request) {
+    public ResponseEntity<ApiResponse<?>> resendVerificationCode(@Valid @RequestBody SendVerificationCodeRequest request) {
         authService.reSendVerificationCode(request);
         return ResponseEntity.status(SuccessCode.RESEND_VERIFICATION_CODE.getStatus())
                 .body(ApiResponse.success(null, SuccessCode.RESEND_VERIFICATION_CODE));
@@ -70,6 +66,27 @@ public class AuthController {
 
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody SendVerificationCodeRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.status(SuccessCode.SUCCESS.getStatus())
+                .body(ApiResponse.success(null, SuccessCode.SUCCESS));
+
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<?>> verifyOtp(@Valid @RequestBody VerifyEmailRequest request) {
+        return ResponseEntity.status(SuccessCode.VERIFY_OTP.getStatus())
+                .body(ApiResponse.success(authService.verifyOtp(request), SuccessCode.VERIFY_OTP));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.status(SuccessCode.SUCCESS.getStatus())
+                .body(ApiResponse.success(null, SuccessCode.SUCCESS));
+    }
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(HttpServletRequest request) {
@@ -77,6 +94,7 @@ public class AuthController {
         return ResponseEntity.status(SuccessCode.REFRESH_TOKEN.getStatus())
                 .body(ApiResponse.success(authService.refreshToken(refreshToken), SuccessCode.REFRESH_TOKEN));
     }
+
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {

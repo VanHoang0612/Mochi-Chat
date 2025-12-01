@@ -40,9 +40,15 @@ public class SecurityConfig {
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/register",
             "/auth/login",
+            "/auth/logout",
             "/auth/verify-email",
+            "/auth/resend-code",
+            "/auth/forgot-password",
+            "/auth/reset-password",
+            "/auth/verify-otp",
             "/auth/refresh-token",
             "/users/add",
+
     };
 
     @Bean

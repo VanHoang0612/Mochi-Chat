@@ -18,10 +18,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(value = {AppException.class})
     ResponseEntity<ApiResponse<Void>> handleAppException(AppException e) {
         ErrorCode errorCode = e.getErrorCode();
+        List<String> errors = e.getErrors();
         return ResponseEntity
                 .status(errorCode.getHttpStatus())
                 .body(
-                        ApiResponse.failure(errorCode)
+                        ApiResponse.failure(errorCode, errors)
                 );
     }
 

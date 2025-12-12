@@ -22,6 +22,24 @@ spring:
     redis:
       host: localhost
       port: 6379
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+              - openid
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-name: Google
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
 security:
   jwt:
     secret-key: ${SECRET_KEY}

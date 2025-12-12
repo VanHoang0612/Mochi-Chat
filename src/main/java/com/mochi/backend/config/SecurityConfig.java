@@ -2,6 +2,7 @@ package com.mochi.backend.config;
 
 import com.mochi.backend.security.jwt.JwtAuthenticationEntryPoint;
 import com.mochi.backend.security.jwt.JwtAuthenticationFilter;
+import com.mochi.backend.security.oauth2.CustomOAuth2SuccessHandler;
 import com.mochi.backend.security.userDetails.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +17,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -36,6 +36,8 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomOAuth2SuccessHandler customOAuth2SuccessHandler;
+    private final PasswordEncoder passwordEncoder;
 
     private static final String[] PUBLIC_ENDPOINTS = {
             "/auth/register",
@@ -47,7 +49,8 @@ public class SecurityConfig {
             "/auth/reset-password",
             "/auth/verify-otp",
             "/auth/refresh-token",
-            "/users/add",
+            "/oauth2/**",
+            "/auth/login-google-success"
 
     };
 
@@ -65,6 +68,11 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/google")
+                        .successHandler(customOAuth2SuccessHandler)
+                )
+
         ;
 
         return http.build();
@@ -83,23 +91,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
     }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) {
-        try {
-            return authenticationConfiguration.getAuthenticationManager();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(customUserDetailsService);
-        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
     }
 }

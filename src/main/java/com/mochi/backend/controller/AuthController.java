@@ -8,7 +8,7 @@ import com.mochi.backend.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -17,14 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final CookieUtils cookieUtils;
 
-    @Value("${security.jwt.expiration-ms.refresh}")
-    private long refreshExpirationMs;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
@@ -51,20 +51,26 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse authResponse = authService.login(request);
-        int maxAgeInSeconds = (int) (refreshExpirationMs / 1000);
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(maxAgeInSeconds)
-                .sameSite("Lax")
-                .build();
+
+        ResponseCookie refreshTokenCookie = cookieUtils.createRefreshTokenCookie(authResponse.getRefreshToken());
         authResponse.setRefreshToken(null);
         return ResponseEntity.status(SuccessCode.LOGIN.getStatus())
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(ApiResponse.success(authResponse, SuccessCode.LOGIN));
 
     }
+
+//    @GetMapping("/login-google-success")
+//    public ResponseEntity<ApiResponse<AuthResponse>> loginGoogleSuccess(OAuth2AuthenticationToken authentication) {
+//        Map<String, Object> attributes = authentication.getPrincipal()
+//                .getAttributes();
+//        AuthResponse authResponse = authService.loginGoogleSuccess(attributes);
+//        ResponseCookie refreshTokenCookie = cookieUtils.createRefreshTokenCookie(authResponse.getRefreshToken());
+//        authResponse.setRefreshToken(null);
+//        return ResponseEntity.status(SuccessCode.LOGIN.getStatus())
+//                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+//                .body(ApiResponse.success(authResponse, SuccessCode.LOGIN));
+//    }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody SendVerificationCodeRequest request) {

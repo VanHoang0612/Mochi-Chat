@@ -39,4 +39,13 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> failure(ErrorCode errorCode, List<String> errors) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(errorCode.getMessage())
+                .errors(errors)
+                .build();
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.mochi.backend.service;
 
 import com.mochi.backend.dto.auth.*;
 import com.mochi.backend.enums.ErrorCode;
+import com.mochi.backend.enums.Provider;
 import com.mochi.backend.enums.RoleType;
 import com.mochi.backend.exception.AppException;
 import com.mochi.backend.mapper.UserMapper;
@@ -67,6 +68,7 @@ public class AuthService {
                         Set.of(roleService.findByName(RoleType.ROLE_USER.name())
                                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND)))
                 )
+                .provider(Provider.LOCAL.name())
                 .build();
 
         try {
@@ -199,7 +201,6 @@ public class AuthService {
             throw new AppException(ErrorCode.EMAIL_NOT_REGISTERED);
         }
     }
-
 
     public void resetPassword(@Valid ResetPasswordRequest request) {
         String storedEmail = redisService.getValue("resetToken:" + request.getResetToken());

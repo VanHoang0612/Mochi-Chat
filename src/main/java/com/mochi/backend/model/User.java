@@ -23,13 +23,12 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     String username;
 
     @Column(nullable = false, unique = true)
     String email;
-
-    @Column(nullable = false)
+    
     String password;
 
     String firstname;
@@ -39,6 +38,10 @@ public class User {
     String avatarUrl;
 
     String avatarId;
+
+    String provider;
+
+    String providerId;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
